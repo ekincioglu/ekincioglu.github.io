@@ -9,6 +9,9 @@
         <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
         <script src="https://use.fontawesome.com/releases/v5.13.0/js/all.js" crossorigin="anonymous"></script>
+        <!-- MapLibre GL JS-->
+        <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" />
+        <script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
         <!-- Google fonts-->
         <link href="https://fonts.googleapis.com/css?family=Saira+Extra+Condensed:500,700" rel="stylesheet" type="text/css" />
         <link href="https://fonts.googleapis.com/css?family=Muli:400,400i,800,800i" rel="stylesheet" type="text/css" />
@@ -20,7 +23,7 @@
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" id="sideNav">
             <a class="navbar-brand js-scroll-trigger" href="#page-top">
                 <span class="d-block d-lg-none">Melih Ekincioglu</span>
-                <span class="d-none d-lg-block"><img class="img-fluid img-profile rounded-circle mx-auto mb-2" src="assets/img/profile2.png" alt="" /></span>
+                <span class="d-none d-lg-block"><img class="img-fluid img-profile rounded-circle mx-auto mb-2" src="assets/img/profile2.jpg" alt="" /></span>
             </a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -47,7 +50,7 @@
                         Kontakt -  
                         <a href="mailto:melih.ekincioglu@outlook.com">melih.ekincioglu@outlook.com</a>
                     </div>
-                    <p class="lead mb-5">Informatik-Student an der Hochschule Mannheim</p>
+                    <p class="lead mb-5">Geographical Information Systems - Data Visualization - Data Analytics</p>
                     <div class="social-icons">
                         <a class="social-icon" href="https://www.linkedin.com/in/melih-ekincioglu-2a17791b5" target="_blank"><i class="fab fa-linkedin-in"></i></a>
                         <a class="social-icon" href="https://www.xing.com/profile/Melih_Ekincioglu" target="_blank"><i class="fab fa-xing"></i></a>
@@ -60,6 +63,20 @@
             <section class="resume-section" id="experience">
                 <div class="resume-section-content">
                     <h2 class="mb-5">Erfahrungen</h2>
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-0">Location Intelligence und 3D-Geovisualisierung</h3>
+                            <div class="subheading mb-3">YellowMap AG</div>
+                            <p>Masterarbeit über 3D-Geovisualisierung</p>
+                            <p>Meine Aufgaben waren</p>
+                            <ul>
+                                <li>Geoinformationssysteme vergleichen</li>
+                                <li>Entwicklung eines 3D-Prototyps mit der Verwendung von MapLibre GL JS und deck.gl</li>
+                                <li>Effizienzunterschiede zwischen 2D- und 3D-Geovisualisierungen</li>
+                              </ul>
+                        </div>
+                        <div class="flex-shrink-0"><span class="text-primary">10/2023 - 03/2024</span></div>
+                    </div>
                     <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
                         <div class="flex-grow-1">
                             <h3 class="mb-0">Geovisualisierung und Data Analytics</h3>
@@ -115,8 +132,9 @@
                             <h3 class="mb-0">Hochschule Mannheim</h3>
                             <div class="subheading mb-3">Master of Science (Software Engineering)</div>
                             <div>Informatik</div>
+                            <p>Abschluss: 1.7</p>
                         </div>
-                        <div class="flex-shrink-0"><span class="text-primary">09/2022 - HEUTE</span></div>
+                        <div class="flex-shrink-0"><span class="text-primary">09/2022 - 03/2024</span></div>
                     </div>
                     <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
                         <div class="flex-grow-1">
@@ -182,7 +200,23 @@
             <section class="resume-section" id="interests">
                 <div class="resume-section-content">
                     <h2 class="mb-5">Projekte</h2>
-                    <p>Alle meine Projekte können Sie unter <a href="https://github.com/ekincioglu" target="_blank">meinem GitHub Profil</a> nachsehen.</p>
+                    <div class="harita">
+                        <div class="legend">
+                            <h3>Tool zur Visualisierung von GeoJSON-Polygonen</h3>
+                            <p>Keine Polygon-Datei zur Hand? <a href="https://opendatalab.de/projects/geojson-utilities/" target="_blank">Hier</a> findest du einige, die du dann auf diese Karte importieren kannst.</p>
+                            <input type="file" id="fileInput" accept=".json, .geojson">
+                            <button id="removeDataButton" style="display: none;">Remove import</button>
+                            <button id="resetView">Reset</button>
+                            <div>
+                                <label for="colorSlider">Polygon color:</label>
+                                <input type="range" id="colorSlider" min="0" max="360" step="1" value="0">
+                            </div>
+                            <div id="coordinates"></div>
+                        </div>
+                        <div id="map"></div>
+                    </div>
+                    <p></p>
+                    <p>Weitere Projekte findest du auch auf <a href="https://github.com/ekincioglu" target="_blank">meinem GitHub Profil</a>.</p>
                 </div>
             </section>
             <hr class="m-0" />
