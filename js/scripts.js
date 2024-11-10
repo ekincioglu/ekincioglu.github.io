@@ -43,7 +43,8 @@
 
 const map = new maplibregl.Map({
     container: 'map',
-    style: 'https://tiles.basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+    // style: 'https://tiles.basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+    style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
     center: [10.5, 51],
     zoom: 4
 });
@@ -119,7 +120,7 @@ function updateCoordinates() {
     const { lng, lat } = map.getCenter();
     const zoom = map.getZoom().toFixed(2);
     const pitch = map.getPitch().toFixed(2);
-    coordinatesContainer.innerHTML = `Longitude: ${lng.toFixed(3)} | Latitude: ${lat.toFixed(3)}<br>Zoom: ${zoom} | Pitch: ${pitch}`;
+    coordinatesContainer.innerHTML = `Longitude: ${lng.toFixed(3)} | Latitude: ${lat.toFixed(3)} Zoom: ${zoom} | Pitch: ${pitch}`;
 }
 
 map.on('move', updateCoordinates);
