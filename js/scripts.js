@@ -43,8 +43,8 @@
 
 const map = new maplibregl.Map({
     container: 'map',
-    // style: 'https://tiles.basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
-    style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    style: 'https://tiles.basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+    // style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
     center: [10.5, 51],
     zoom: 4
 });
