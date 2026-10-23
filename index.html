@@ -8,8 +8,27 @@
         content="Melih Ekincioglu — Full-stack software engineer with a focus on frontend development and 3D geovisualization (MapLibre GL JS · deck.gl · three.js)." />
     <meta name="author" content="Melih Ekincioglu" />
     <meta name="theme-color" content="#25B992" />
+    <meta name="color-scheme" content="light" />
+    <meta name="format-detection" content="telephone=no" />
     <title>Melih Ekincioglu</title>
+    <link rel="canonical" href="https://www.ekincioglu.de/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.ekincioglu.de/" />
+    <meta property="og:title" content="Melih Ekincioglu" />
+    <meta property="og:description"
+        content="Frontend-focused full-stack engineer. GIS, 3D geovisualization and data stories that actually load in under a second." />
+    <meta property="og:image" content="https://www.ekincioglu.de/assets/img/profile2-840.jpg" />
+    <meta property="og:image:width" content="840" />
+    <meta property="og:image:height" content="840" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Melih Ekincioglu" />
+    <meta name="twitter:description"
+        content="Frontend-focused full-stack engineer. GIS, 3D geovisualization and data stories that actually load in under a second." />
+    <meta name="twitter:image" content="https://www.ekincioglu.de/assets/img/profile2-840.jpg" />
+
     <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico" />
+    <link rel="apple-touch-icon" href="assets/img/logo.png" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,7 +37,7 @@
         rel="stylesheet">
 
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3/dist/maplibre-gl.css" />
-    <script src="https://unpkg.com/maplibre-gl@3/dist/maplibre-gl.js"></script>
+    <script defer src="https://unpkg.com/maplibre-gl@3/dist/maplibre-gl.js"></script>
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -34,8 +53,8 @@
             <img class="logo" src="assets/img/logo.png" alt="">
             Melih&nbsp;Ekincioglu
         </a>
-        <button class="burger" id="burger" aria-expanded="false"
-            aria-controls="navLinks"><span></span><span></span><span></span></button>
+        <button class="burger" id="burger" aria-expanded="false" aria-controls="navLinks"
+            aria-label="Open menu"><span></span><span></span><span></span></button>
         <div class="nav-panel">
             <ul class="nav-links" id="navLinks">
                 <li><a href="#about">About</a></li>
@@ -105,7 +124,10 @@
                         </svg>
                         <div class="ring" aria-hidden="true"></div>
                         <div class="portrait">
-                            <img src="assets/img/profile2.jpg" alt="Portrait of Melih Ekincioglu" loading="lazy">
+                            <img src="assets/img/profile2-840.jpg"
+                                srcset="assets/img/profile2-480.jpg 480w, assets/img/profile2-840.jpg 840w, assets/img/profile2-1140.jpg 1140w"
+                                sizes="(max-width: 920px) 92vw, 420px" width="1140" height="1140"
+                                alt="Portrait of Melih Ekincioglu" loading="lazy" decoding="async">
                         </div>
                         <figcaption class="portrait-cap"><span><b>FIG_01</b> — profile.jpg</span><span>MANNHEIM ·
                                 DE</span>
@@ -154,8 +176,8 @@
                         <p class="sec-kicker">SEC·02 — Track record</p>
                         <h2 class="sec-title">Experience</h2>
                     </div>
-                    <svg width="74" height="74" viewBox="0 0 80 80" style="margin-left:auto;color:#BFE3D8;flex:0 0 auto"
-                        fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <svg class="sec-mark" width="74" height="74" viewBox="0 0 80 80" fill="none" stroke="currentColor"
+                        stroke-width="1.5" aria-hidden="true">
                         <circle cx="40" cy="40" r="30" />
                         <path d="M40 6v12M40 62v12M6 40h12M62 40h12" /><text x="35.5" y="34" font-size="11"
                             fill="currentColor" stroke="none" font-family="var(--mono)">N</text>
@@ -355,10 +377,9 @@
 
                 <article class="card lab-card rev">
                     <span class="idx">P·00 / LIVE</span>
-                    <div
-                        style="padding:22px 20px 8px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap">
-                        <h3 style="margin:0;padding-right:90px">GeoJSON Playground</h3>
-                        <p style="color:var(--slate);font-size:.92rem;max-width:60ch;margin-top:8px">Drop in any
+                    <div class="lab-head">
+                        <h3 class="lab-title">GeoJSON Playground</h3>
+                        <p class="lab-desc">Drop in any
                             <b>.geojson</b> —
                             it lands on the map. Tilt into 3D, shift the hue, watch coordinates under your cursor.</p>
                     </div>
@@ -375,7 +396,7 @@
                                 id="colorSlider" min="0" max="360" step="1" value="168"></div>
                     </div>
                     <div id="labMap">
-                        <div class="map-readout" id="labReadout">E — · N —</div>
+                        <div class="map-readout" id="labReadout" aria-live="polite">E — · N —</div>
                     </div>
                 </article>
 

@@ -19,6 +19,8 @@
     /* contact band / footer */
     --line: rgba(13, 124, 96, .14);
     --navh: 68px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
     --ease: cubic-bezier(.22, .61, .36, 1);
     --disp: 'Sora', sans-serif;
     --body: 'Manrope', system-ui, sans-serif;
@@ -34,7 +36,11 @@
 }
 
 html {
-    scroll-behavior: smooth
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overflow-x: hidden;
+    overflow-x: clip
 }
 
 body {
@@ -43,8 +49,11 @@ body {
     background: var(--paper);
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+    overflow-x: clip;
     line-height: 1.55;
     font-size: 16px;
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility
 }
 
 ::selection {
@@ -105,6 +114,12 @@ input {
     position: relative
 }
 
+.sec-mark {
+    margin-left: auto;
+    color: #BFE3D8;
+    flex: 0 0 auto
+}
+
 .sec-kicker {
     font-family: var(--mono);
     font-size: .72rem;
@@ -157,7 +172,7 @@ input {
 section.block {
     padding: clamp(84px, 11vh, 128px) 0;
     position: relative;
-    scroll-margin-top: calc(var(--navh) - 8px)
+    scroll-margin-top: calc(var(--navh) + var(--safe-top) - 8px)
 }
 
 /* faint graticule texture on light sections */
@@ -187,6 +202,15 @@ html.no-js .rev {
     transform: none !important
 }
 
+/* without JS there is no map to sit the copy on — keep the hero legible */
+html.no-js .hero {
+    background: #0A2A22
+}
+
+html.no-js .scrim-l {
+    display: none
+}
+
 .rev {
     opacity: 0;
     transform: translateY(26px);
@@ -205,7 +229,8 @@ html.no-js .rev {
     left: 0;
     right: 0;
     z-index: 90;
-    height: var(--navh);
+    height: calc(var(--navh) + var(--safe-top));
+    padding-top: var(--safe-top);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -314,12 +339,14 @@ html.no-js .rev {
 
 .burger {
     display: none;
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
+    margin-right: -6px;
     background: none;
     border: 0;
     cursor: pointer;
-    padding: 8px
+    padding: 10px;
+    border-radius: 10px
 }
 
 .burger span {
@@ -366,14 +393,17 @@ html.no-js .rev {
 
     .nav-panel {
         position: absolute;
-        top: var(--navh);
+        top: calc(var(--navh) + var(--safe-top));
         left: 0;
         right: 0;
         display: none;
         flex-direction: column;
         gap: 4px;
+        max-height: calc(100svh - var(--navh) - var(--safe-top));
+        overflow-y: auto;
+        overscroll-behavior: contain;
         background: #fff;
-        padding: 18px clamp(18px, 5vw, 40px) 26px;
+        padding: 12px clamp(18px, 5vw, 40px) calc(24px + var(--safe-bottom));
         border-bottom: 1px solid var(--line);
         box-shadow: 0 30px 40px -30px rgba(7, 52, 41, .3);
     }
@@ -389,8 +419,22 @@ html.no-js .rev {
     }
 
     .nav-links li {
-        padding: 9px 0;
+        padding: 0;
         border-bottom: 1px dashed var(--line)
+    }
+
+    .nav-links a {
+        display: flex;
+        align-items: center;
+        min-height: 48px;
+        font-size: .98rem;
+        padding: 0
+    }
+
+    .nav-links a::after {
+        bottom: 12px;
+        right: auto;
+        width: 24px
     }
 
     .nav-cta {
@@ -398,15 +442,21 @@ html.no-js .rev {
         text-align: center;
         display: inline-block;
         width: max-content;
-        margin-inline: auto
+        margin-inline: auto;
+        padding: 12px 22px
+    }
+
+    body.menu-open {
+        overflow: hidden
     }
 }
 
 .hero {
     position: relative;
+    height: 100vh;
     height: 100svh;
     min-height: 640px;
-    background: #E7F2EC;
+    background: #0E2B24;
     overflow: hidden
 }
 
@@ -431,7 +481,7 @@ html.no-js .rev {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: linear-gradient(102deg, rgba(5, 32, 26, .82) 0%, rgba(5, 32, 26, .42) 34%, rgba(5, 32, 26, .08) 58%, transparent 78%)
+    background: linear-gradient(102deg, rgba(5, 32, 26, .88) 0%, rgba(5, 32, 26, .52) 36%, rgba(5, 32, 26, .14) 60%, transparent 80%)
 }
 
 .scrim-b {
@@ -685,14 +735,109 @@ html.no-js .rev {
     animation: pulse 2.6s infinite
 }
 
-@media (max-width:760px) {
+@media (max-width:920px) {
     .readout {
         display: none
     }
 
+    .hero {
+        min-height: 620px
+    }
+
     .hero-inner {
         justify-content: flex-end;
-        padding-bottom: 14vh
+        gap: 18px;
+        padding-bottom: calc(88px + var(--safe-bottom))
+    }
+
+    /* the desktop left-to-right scrim stops working once the copy
+       fills the full width — go vertical so the text keeps contrast */
+    .scrim-l {
+        background:
+            linear-gradient(to top,
+                rgba(5, 32, 26, .97) 0%,
+                rgba(5, 32, 26, .93) 20%,
+                rgba(5, 32, 26, .82) 36%,
+                rgba(5, 32, 26, .64) 50%,
+                rgba(5, 32, 26, .55) 64%,
+                rgba(5, 32, 26, .34) 78%,
+                rgba(5, 32, 26, .5) 100%)
+    }
+
+    .scrim-b {
+        height: 34%
+    }
+
+    .map-tint {
+        opacity: .1
+    }
+
+    .hero h1 {
+        font-size: clamp(2.45rem, 10.2vw, 5rem)
+    }
+
+    .lede {
+        font-size: 1.02rem;
+        line-height: 1.62;
+        max-width: 46ch
+    }
+
+    /* decorative map marker sits behind the copy on narrow screens */
+    .pin-chip {
+        display: none
+    }
+
+    /* keep the map decorative: without this, touch-drag on the hero
+       map traps the page scroll on phones */
+    #heroMap .maplibregl-canvas-container {
+        pointer-events: none
+    }
+
+    .scrollcue {
+        left: clamp(18px, 3vw, 44px);
+        transform: none;
+        bottom: calc(18px + var(--safe-bottom));
+        gap: 6px
+    }
+
+    .scrollcue .line {
+        height: 28px
+    }
+}
+
+@media (max-width:520px) {
+    .hero-inner {
+        gap: 16px;
+        padding-bottom: calc(84px + var(--safe-bottom))
+    }
+
+    .hero h1 {
+        font-size: clamp(2.45rem, 12.2vw, 3.4rem)
+    }
+
+    .kicker {
+        font-size: .66rem;
+        letter-spacing: .16em;
+        gap: 8px
+    }
+
+    .cta-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        margin-top: 4px
+    }
+
+    .btn {
+        justify-content: center;
+        width: 100%;
+        padding: 14px 18px
+    }
+}
+
+@media (max-height:700px) {
+    .scrollcue {
+        display: none
     }
 }
 
@@ -787,7 +932,10 @@ html.no-js .rev {
     letter-spacing: .18em;
     color: var(--slate);
     display: flex;
-    justify-content: space-between
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    row-gap: 4px
 }
 
 .portrait-cap b {
@@ -948,6 +1096,30 @@ html.no-js .rev {
     .timeline {
         padding-left: 24px
     }
+
+    .tl-item::before {
+        left: -24px
+    }
+
+    .date-chip {
+        justify-self: start;
+        min-width: 0
+    }
+
+    .sec-head {
+        margin-bottom: 36px;
+        gap: 16px;
+        flex-wrap: nowrap
+    }
+
+    .sec-head>div {
+        min-width: 0
+    }
+
+    .sec-mark {
+        width: 56px;
+        height: 56px
+    }
 }
 
 .edu-grid {
@@ -1012,7 +1184,9 @@ html.no-js .rev {
 @media (max-width:860px) {
     .edu-grid {
         grid-template-columns: 1fr;
-        max-width: 520px
+        max-width: 520px;
+        margin-inline: auto;
+        gap: 16px
     }
 }
 
@@ -1183,6 +1357,25 @@ html.no-js .rev {
     flex-direction: column
 }
 
+.lab-head {
+    padding: 24px 24px 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px
+}
+
+.lab-title {
+    margin: 0;
+    padding-right: 92px
+}
+
+.lab-desc {
+    color: var(--slate);
+    font-size: .92rem;
+    max-width: 62ch;
+    margin-top: 4px
+}
+
 .lab-toolbar {
     display: flex;
     align-items: center;
@@ -1269,6 +1462,14 @@ input[type=range] {
     pointer-events: none
 }
 
+.lab-tilt {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 6;
+    background: #fff
+}
+
 .map-offline {
     display: grid;
     place-items: center;
@@ -1327,14 +1528,19 @@ input[type=range] {
 
 .mail-btn {
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
     margin-top: 26px;
+    max-width: 100%;
     background: var(--mint);
     color: #04150F;
     font-family: var(--mono);
+    font-size: clamp(.8rem, 3.6vw, 1rem);
     font-weight: 600;
     letter-spacing: .04em;
-    padding: 15px 24px;
+    padding: 15px clamp(16px, 2.5vw, 24px);
     border-radius: 13px;
+    overflow-wrap: anywhere;
     transition: background .3s, transform .3s
 }
 
@@ -1455,11 +1661,11 @@ input[type=range] {
 /* to-top */
 .totop {
     position: fixed;
-    right: 26px;
-    bottom: 26px;
+    right: max(20px, env(safe-area-inset-right, 0px));
+    bottom: calc(20px + var(--safe-bottom));
     z-index: 60;
-    width: 46px;
-    height: 46px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     border: 1px solid rgba(37, 185, 146, .5);
     background: #fff;
@@ -1490,6 +1696,339 @@ input[type=range] {
 
     .portrait-wrap {
         margin-inline: auto
+    }
+}
+
+/* contact: stack before the email pill starts pushing the radar out */
+@media (max-width:860px) {
+    .contact-grid {
+        grid-template-columns: 1fr;
+        gap: 40px
+    }
+
+    .contact h2 {
+        font-size: clamp(1.9rem, 7vw, 3rem)
+    }
+
+    .radar-wrap {
+        min-height: 240px
+    }
+
+    .radar {
+        width: min(230px, 64vw)
+    }
+}
+
+@media (max-width:600px) {
+    .lab-head {
+        padding: 20px 16px 0
+    }
+
+    .lab-title {
+        padding-right: 86px;
+        font-size: 1.08rem
+    }
+
+    .lab-card .lab-title {
+        padding-right: 86px
+    }
+
+    .lab-toolbar {
+        padding: 12px;
+        gap: 8px
+    }
+
+    .lab-toolbar .btn-mini {
+        flex: 1 1 auto;
+        justify-content: center
+    }
+
+    .slider-wrap {
+        width: 100%;
+        margin-left: 0;
+        justify-content: space-between;
+        gap: 12px;
+        padding-top: 2px
+    }
+
+    .slider-wrap input[type=range] {
+        flex: 1;
+        width: auto;
+        max-width: 210px
+    }
+
+    #labMap,
+    .map-offline {
+        height: clamp(320px, 52svh, 460px)
+    }
+
+    .map-readout {
+        left: 10px;
+        bottom: 10px;
+        font-size: .66rem;
+        padding: 6px 9px
+    }
+}
+
+@media (max-width:520px) {
+    .card {
+        padding: 22px;
+        border-radius: 16px
+    }
+
+    .lab-card {
+        padding: 0
+    }
+
+    .card h3 {
+        padding-right: 0
+    }
+
+    .card .idx {
+        top: 18px;
+        right: 18px;
+        font-size: .62rem
+    }    .chip {
+        padding: 9px 14px;
+        font-size: .82rem
+    }
+
+    .edu-card {
+        padding: 22px
+    }
+
+    .edu-card h3 {
+        max-width: 100%;
+        padding-right: 0
+    }
+
+    .edu-grade {
+        position: static;
+        display: inline-flex;
+        margin-bottom: 10px
+    }
+
+    .edu-foot {
+        flex-wrap: wrap;
+        gap: 6px 12px
+    }
+
+    .contact {
+        padding-top: 78px
+    }
+
+    .contact h2 {
+        font-size: clamp(1.8rem, 8.6vw, 2.5rem)
+    }
+
+    .mail-btn {
+        width: 100%;
+        padding: 14px 16px
+    }
+
+    .social-row {
+        gap: 8px
+    }
+
+    .pill-link {
+        padding: 10px 14px
+    }
+
+    .contact-foot {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        padding-bottom: calc(20px + var(--safe-bottom))
+    }
+}
+
+@media (max-width:420px) {
+    /* let the live badge sit on its own line instead of
+       colliding with the playground title */
+    .lab-card .idx {
+        position: static;
+        display: block;
+        text-align: right;
+        padding: 14px 16px 0
+    }
+
+    .lab-card .lab-title {
+        padding-right: 0
+    }
+
+    .lab-head {
+        padding-top: 4px
+    }
+
+    .tags {
+        gap: 8px 14px;
+        font-size: .64rem
+    }
+}
+
+@media (max-width:380px) {
+    /* below this the section header can't hold the title and its
+       action side by side — drop the action onto its own line */
+    .sec-head {
+        flex-wrap: wrap
+    }
+
+    .social-row {
+        gap: 6px
+    }
+
+    .pill-link {
+        padding: 9px 11px;
+        font-size: .68rem;
+        letter-spacing: .04em
+    }
+}
+
+/* touch devices: kill sticky hover states and lift-on-tap transforms */
+@media (max-width:320px) {
+    .mail-btn {
+        font-size: .74rem;
+        letter-spacing: .02em;
+        padding: 13px 12px
+    }
+}
+
+@media (hover:none) {
+    .card:hover,
+    .edu-card:hover,
+    .chip:hover,
+    .pill-link:hover,
+    .btn:hover,
+    .mail-btn:hover,
+    .nav-cta:hover {
+        transform: none
+    }
+
+    .chip:hover {
+        background: var(--mint-soft);
+        color: #0E4A3B;
+        border-color: transparent
+    }
+
+    .card:hover,
+    .edu-card:hover {
+        box-shadow: none;
+        border-color: var(--line)
+    }
+
+    #heroMap .maplibregl-canvas-container {
+        pointer-events: none
+    }
+}
+
+@media (max-width:920px) {
+    #heroMap .maplibregl-ctrl-bottom-right {
+        bottom: calc(6px + var(--safe-bottom))
+    }
+
+    .lab-tilt {
+        top: 10px;
+        right: 10px;
+        padding: 8px 11px;
+        font-size: .68rem
+    }
+}
+
+/* nicer line breaking where the browser supports it */
+h1,
+h2,
+h3,
+.sec-title,
+.contact h2 {
+    text-wrap: balance
+}
+
+p,
+li {
+    text-wrap: pretty
+}
+
+@media print {
+    html,
+    body {
+        overflow: visible;
+        background: #fff
+    }
+
+    .nav,
+    #heroMap,
+    .map-tint,
+    .scrim-l,
+    .scrim-b,
+    .readout,
+    .scrollcue,
+    #labMap,
+    .lab-toolbar,
+    .lab-tilt,
+    .radar-wrap,
+    .totop,
+    .sec-mark,
+    .block::before,
+    .block::after {
+        display: none !important
+    }
+
+    .hero {
+        height: auto;
+        min-height: 0;
+        background: #fff;
+        padding: 24px 0
+    }
+
+    .hero-inner {
+        height: auto;
+        padding: 0
+    }
+
+    .hero h1,
+    .hero h1 .outline,
+    .kicker,
+    .lede {
+        color: #0D211C
+    }
+
+    .contact,
+    .contact h2,
+    .contact h2 em {
+        background: #fff;
+        color: #0D211C
+    }
+
+    .rev,
+    .sec-head .sec-title {
+        opacity: 1 !important;
+        transform: none !important
+    }
+
+    .sec-title::after {
+        transform: scaleX(1)
+    }
+
+    section.block {
+        padding: 24px 0;
+        break-inside: avoid
+    }
+
+    a {
+        text-decoration: underline
+    }
+
+    .contact a,
+    .pill-link,
+    .mail-btn {
+        background: none;
+        color: #0D211C;
+        border-color: #999
+    }
+
+    .contact-foot {
+        color: #444;
+        border-color: #ccc
     }
 }
 

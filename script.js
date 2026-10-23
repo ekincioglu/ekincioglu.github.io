@@ -4,15 +4,29 @@
     const $ = (s, c) => (c || document).querySelector(s);
     const $$ = (s, c) => Array.from((c || document).querySelectorAll(s));
     const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const COARSE = matchMedia('(pointer: coarse)').matches || matchMedia('(hover: none)').matches;
 
     $('#year').textContent = new Date().getFullYear();
 
-    const nav = $('#nav'), burger = $('#burger');
-    burger.addEventListener('click', () => {
-        const open = nav.classList.toggle('nav-open');
-        burger.setAttribute('aria-expanded', open);
-    });
-    $$('#navLinks a').forEach(a => a.addEventListener('click', () => { nav.classList.remove('nav-open'); burger.setAttribute('aria-expanded', 'false') }));
+    const nav = $('#nav'), burger = $('#burger'), navPanel = $('.nav-panel');
+    const setMenu = (open, restoreFocus) => {
+        nav.classList.toggle('nav-open', open);
+        burger.setAttribute('aria-expanded', String(open));
+        burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+        document.body.classList.toggle('menu-open', open);
+        if (open) {
+            const first = navPanel.querySelector('a');
+            first && first.focus({ preventScroll: true });
+        } else if (restoreFocus) {
+            burger.focus({ preventScroll: true });
+        }
+    };
+    const menuOpen = () => nav.classList.contains('nav-open');
+    burger.addEventListener('click', () => setMenu(!menuOpen()));
+    $$('#navLinks a, .nav-cta').forEach(a => a.addEventListener('click', () => setMenu(false)));
+    addEventListener('keydown', e => { if (e.key === 'Escape' && menuOpen()) setMenu(false, true) });
+    document.addEventListener('click', e => { if (menuOpen() && !nav.contains(e.target)) setMenu(false) });
+    matchMedia('(min-width:921px)').addEventListener('change', e => { if (e.matches && menuOpen()) setMenu(false) });
 
     const progBar = $('#progress i'), toTop = $('#toTop');
     function onScroll() {
@@ -56,11 +70,16 @@
     addEventListener('load', () => { $$('[data-scramble]').forEach((el, i) => setTimeout(() => scramble(el), 180 + i * 260)); });
 
     const CENTER = [8.4719, 49.4881], HOME = { center: CENTER, zoom: 13.4, pitch: 58, bearing: -6 };
+    /* tile.openstreetmap.org enforces its referrer policy and answers with a
+       "403 Access blocked" tile whenever it can't verify the referrer — e.g.
+       in local file previews or browsers that strip it. FOSSGIS serves the
+       same OpenStreetMap Carto style without that check. */
+    const TILE_URL = 'https://tile.openstreetmap.de/{z}/{x}/{y}.png';
     const osmStyle = () => ({
         version: 8, sources: {
             osm: {
                 type: 'raster', tileSize: 256,
-                tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'], attribution: '© OpenStreetMap contributors'
+                tiles: [TILE_URL], attribution: '© OpenStreetMap contributors'
             }
         },
         layers: [{ id: 'bg', type: 'background', 'paint': { 'background-color': '#E4F1EA' } },
@@ -70,7 +89,7 @@
     let heroMap = null, labMap = null, orbitOn = false;
 
     function startOrbit() {
-        if (RM) return;
+        if (RM || COARSE) return;
         const A = 26, P = 52000, t0 = performance.now(); let last = 0;
         (function loop(now) {
             requestAnimationFrame(loop);
@@ -92,14 +111,16 @@
     function initMaps() {
         if (!window.maplibregl) { fallbackCanvas(); offlineLab(); return; }
         try {
-            heroMap = new maplibregl.Map({ container: $('#heroMap'), style: osmStyle(), center: CENTER, zoom: 10.6, pitch: 42, bearing: -22, attributionControl: { compact: true }, scrollZoom: false, touchZoom: false, dragRotate: false });
+            heroMap = new maplibregl.Map({ container: $('#heroMap'), style: osmStyle(), center: CENTER, zoom: 10.6, pitch: 42, bearing: -22, attributionControl: { compact: true }, scrollZoom: false, touchZoom: false, dragRotate: false, interactive: !COARSE });
             heroMap.on('load', () => {
                 ['scrollZoom', 'touchZoom', 'dragRotate'].forEach(m => heroMap[m]?.disable());
                 try { heroMap.setPaintProperty('osm', 'raster-saturation', -0.5); } catch (e) { }
                 const el = document.createElement('div'); el.className = 'pin-chip'; el.textContent = 'ME';
                 new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat(CENTER).addTo(heroMap);
-                if (RM) { heroMap.setPitch(HOME.pitch); heroMap.setBearing(HOME.bearing); home(); }
-                else {
+                if (RM || COARSE) {
+                    /* phones: no orbit loop, no wasted frames — just settle on the composition */
+                    heroMap.jumpTo(HOME);
+                } else {
                     const home = () => heroMap.flyTo({ ...HOME, duration: 3400, essential: true });
                     setTimeout(home, 250);
                     setTimeout(() => { orbitOn = true; startOrbit(); setInterval(tickReadout, 700) }, 3800);
@@ -135,7 +156,7 @@
 
     function initLab() {
         const box = $('#labMap'), readoutEl = $('#labReadout');
-        labMap = new maplibregl.Map({ container: box, style: osmStyle(), center: CENTER, zoom: 12.4, pitch: 0, bearing: 0, attributionControl: { compact: true }, dragRotate: false });
+        labMap = new maplibregl.Map({ container: box, style: osmStyle(), center: CENTER, zoom: 12.4, pitch: 0, bearing: 0, attributionControl: { compact: true }, dragRotate: false, cooperativeGestures: COARSE });
         let hasUser = false;
         const removeBtn = $('#removeDataButton'), slider = $('#colorSlider');
 
@@ -166,17 +187,17 @@
             function fitData(d) { labMap.fitBounds(d, { padding: 70, duration: RM ? 0 : 900 }); }
 
             /* live coordinate readout */
-            box.addEventListener('mousemove', e => {
-                const l = labMap.queryRenderedFeatures([e.offsetX, e.offsetY]); // cheap enough at this size
-                const c = labMap.unproject([e.offsetX, e.offsetY]);
+            box.addEventListener('pointermove', e => {
+                const r = box.getBoundingClientRect();
+                const c = labMap.unproject([e.clientX - r.left, e.clientY - r.top]);
                 readoutEl.textContent = `E ${c.lng.toFixed(5)} · N ${c.lat.toFixed(5)}`;
             });
-            box.addEventListener('mouseleave', () => { readoutEl.textContent = 'MOVE CURSOR OVER MAP'; });
+            box.addEventListener('pointerleave', () => { readoutEl.textContent = COARSE ? 'TOUCH MAP TO INSPECT' : 'MOVE CURSOR OVER MAP'; });
         });
 
         /* tilt toggle */
         const tilt = document.createElement('button');
-        tilt.className = 'btn-mini'; tilt.textContent = 'TILT → 3D'; tilt.style.position = 'absolute'; tilt.style.top = '14px'; tilt.style.right = '14px'; tilt.style.zIndex = '6';
+        tilt.className = 'btn-mini lab-tilt'; tilt.textContent = 'TILT → 3D';
         box.appendChild(tilt);
         let pitched = false;
         tilt.addEventListener('click', () => {
