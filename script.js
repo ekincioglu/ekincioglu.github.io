@@ -86,7 +86,7 @@
         { id: 'osm', type: 'raster', source: 'osm' }]
     });
 
-    let heroMap = null, labMap = null, orbitOn = false;
+    let heroMap = null, orbitOn = false;
 
     function startOrbit() {
         if (RM || COARSE) return;
@@ -109,7 +109,7 @@
     }
 
     function initMaps() {
-        if (!window.maplibregl) { fallbackCanvas(); offlineLab(); return; }
+        if (!window.maplibregl) { fallbackCanvas(); return; }
         try {
             heroMap = new maplibregl.Map({ container: $('#heroMap'), style: osmStyle(), center: CENTER, zoom: 10.6, pitch: 42, bearing: -22, attributionControl: { compact: true }, scrollZoom: false, touchZoom: false, dragRotate: false, interactive: !COARSE });
             heroMap.on('load', () => {
@@ -127,91 +127,7 @@
                 }
             });
             new IntersectionObserver(en => en.forEach(e => orbitOn = e.isIntersecting), { threshold: .1 }).observe($('.hero'));
-
-            initLab();
-        } catch (err) { console.warn('Map init failed →', err); fallbackCanvas(); offlineLab(); }
-    }
-
-    const SAMPLE = {
-        type: 'FeatureCollection', features: [{
-            type: 'Feature', properties: { name: 'Sample — Innenstadt' }, geometry: {
-                type: 'Polygon', coordinates: [[
-                    [8.4650, 49.4842], [8.4790, 49.4831], [8.4862, 49.4918], [8.4785, 49.5002], [8.4640, 49.4958], [8.4650, 49.4842]]]
-            }
-        }]
-    };
-
-    function polyColor(hue) {
-        const h = ((hue % 360) + 360) % 360;            // normalize 0..360
-        const s = .64, l = .5;                       // fixed mint-leaning saturation/lightness
-        const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs(((h / 60) % 2) - 1)), m = l - c / 2;
-        let r = 0, g = 0, b = 0;
-        if (h < 60) { r = c; g = x; } else if (h < 120) { r = x; g = c; }
-        else if (h < 180) { g = c; r = x; } else if (h < 240) { g = c; b = x; }
-        else if (h < 300) { b = c; g = x; } else { b = c; r = x; }
-        const to = v => Math.round((v + m) * 255);      // MapLibre accepts rgb(0-255) strings
-        return `rgb(${to(r)},${to(g)},${to(b)})`;
-    }
-
-
-    function initLab() {
-        const box = $('#labMap'), readoutEl = $('#labReadout');
-        labMap = new maplibregl.Map({ container: box, style: osmStyle(), center: CENTER, zoom: 12.4, pitch: 0, bearing: 0, attributionControl: { compact: true }, dragRotate: false, cooperativeGestures: COARSE });
-        let hasUser = false;
-        const removeBtn = $('#removeDataButton'), slider = $('#colorSlider');
-
-        labMap.on('load', () => {
-            try { labMap.setPaintProperty('osm', 'raster-saturation', -0.25); } catch (e) { }
-            labMap.addSource('user', { type: 'geojson', data: SAMPLE });
-            labMap.addLayer({ id: 'user-fill', type: 'fill', source: 'user', 'paint': { 'fill-color': polyColor(168), 'fill-opacity': 0.4 } });
-            labMap.addLayer({ id: 'user-line', type: 'line', source: 'user', 'paint': { 'line-color': '#FFFFFF', 'line-width': 2, 'line-dasharray': [1, 0] } });
-
-            /* hue slider */
-            slider.addEventListener('input', e => labMap.setPaintProperty('user-fill', 'fill-color', polyColor(+e.target.value)));
-            /* remove import */
-            $('#fileInput').addEventListener('change', ev => {
-                const f = ev.target.files[0]; if (!f) return;
-                const r = new FileReader();
-                r.onload = () => {
-                    try {
-                        let d = JSON.parse(r.result);
-                        if (d.type !== 'FeatureCollection') d = { type: 'FeatureCollection', features: [d] };
-                        labMap.getSource('user').setData(d); hasUser = true; removeBtn.disabled = false; fitData(d);
-                    } catch (err) { readoutEl.textContent = '⚠ could not parse file'; setTimeout(() => readoutEl.textContent = 'E — · N —', 2600); }
-                };
-                r.readAsText(f); ev.target.value = '';
-            });
-            removeBtn.addEventListener('click', () => { labMap.getSource('user').setData({ type: 'FeatureCollection', features: [] }); hasUser = false; removeBtn.disabled = true; readoutEl.textContent = 'IMPORT CLEARED'; setTimeout(() => readoutEl.textContent = 'E — · N —', 2000); });
-            $('#resetView').addEventListener('click', () => { const s = labMap.getSource('user')._data || SAMPLE; fitData(s); });
-
-            function fitData(d) { labMap.fitBounds(d, { padding: 70, duration: RM ? 0 : 900 }); }
-
-            /* live coordinate readout */
-            box.addEventListener('pointermove', e => {
-                const r = box.getBoundingClientRect();
-                const c = labMap.unproject([e.clientX - r.left, e.clientY - r.top]);
-                readoutEl.textContent = `E ${c.lng.toFixed(5)} · N ${c.lat.toFixed(5)}`;
-            });
-            box.addEventListener('pointerleave', () => { readoutEl.textContent = COARSE ? 'TOUCH MAP TO INSPECT' : 'MOVE CURSOR OVER MAP'; });
-        });
-
-        /* tilt toggle */
-        const tilt = document.createElement('button');
-        tilt.className = 'btn-mini lab-tilt'; tilt.textContent = 'TILT → 3D';
-        box.appendChild(tilt);
-        let pitched = false;
-        tilt.addEventListener('click', () => {
-            pitched = !pitched;
-            tilt.textContent = pitched ? 'FLAT → 2D' : 'TILT → 3D';
-            labMap.easeTo({ center: CENTER, zoom: 12.8, pitch: pitched ? 60 : 0, duration: RM ? 0 : 950, essential: true });
-        });
-    }
-
-    function offlineLab() {
-        const box = $('#labMap'); if (!box) return;
-        const d = document.createElement('div'); d.className = 'map-offline';
-        d.innerHTML = 'LIVE MAP NEEDS A CONNECTION.<br>THE REAL ONE SHINES ON YOUR NETWORK.';
-        box.innerHTML = ''; box.appendChild(d);
+        } catch (err) { console.warn('Map init failed →', err); fallbackCanvas(); }
     }
 
     const BLOB1 = new Path2D("M78 232C58 168 108 92 196 74c90-19 160 34 176 104S344 312 258 330C172 348 98 296 78 232Z");

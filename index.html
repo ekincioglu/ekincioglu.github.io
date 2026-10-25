@@ -40,6 +40,7 @@
     <script defer src="https://unpkg.com/maplibre-gl@3/dist/maplibre-gl.js"></script>
 
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="playground.css">
 </head>
 
 <body id="page-top">
@@ -375,28 +376,194 @@
                         style="margin-left:auto;border-color:rgba(37,185,146,.4);color:var(--mint-deep)">GITHUB ↗</a>
                 </div>
 
-                <article class="card lab-card rev">
-                    <span class="idx">P·00 / LIVE</span>
-                    <div class="lab-head">
-                        <h3 class="lab-title">GeoJSON Playground</h3>
-                        <p class="lab-desc">Drop in any
-                            <b>.geojson</b> —
-                            it lands on the map. Tilt into 3D, shift the hue, watch coordinates under your cursor.</p>
+                <article class="card lab-pro rev" id="lab" aria-labelledby="labTitle">
+                    <div class="lab-pro-head">
+                        <div class="lab-pro-copy">
+                            <p class="lab-pro-kicker"><span class="lab-dot" aria-hidden="true"></span>P·00 / LIVE
+                                EXPERIMENT <span class="lab-kicker-extra"><span class="lab-kicker-sep">·</span> 3D
+                                    GEOJSON PLAYGROUND</span></p>
+                            <h3 class="lab-title" id="labTitle">GEO<span>LAB</span><em>3D</em></h3>
+                            <p class="lab-desc">Three built-in scenes, one WebGL canvas. Real Mannheim building
+                                footprints, animated mobility corridors and a synthetic heat field — rendered live with
+                                MapLibre GL + deck.gl. <b>No uploads, no API keys, no datasets to hunt down.</b>
+                                <span class="lab-desc-extra">Change the palette, push the elevation, shuffle the
+                                    city.</span></p>
+                        </div>
+                        <div class="lab-pro-meta" aria-label="Built-in data">
+                            <div><b id="metaBuildings">2,503</b><span>FOOTPRINTS</span></div>
+                            <div><b id="metaFlows">24</b><span>CORRIDORS</span></div>
+                            <div><b id="metaSensors">320</b><span>SENSORS</span></div>
+                            <span class="lab-builtin">BUILT-IN DATA · MANNHEIM</span>
+                        </div>
                     </div>
-                    <div class="lab-toolbar">
-                        <label class="btn-mini" for="fileInput"><svg width="12" height="12" viewBox="0 0 14 14"
-                                fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-                                <path d="M7 9V1.5M3.5 5 7 1.5 10.5 5" />
-                                <rect x="1.5" y="8.5" width="11" height="4" />
-                            </svg>IMPORT .GEOJSON</label>
-                        <input type="file" id="fileInput" accept=".json,.geojson,application/geo+json">
-                        <button class="btn-mini" id="removeDataButton" disabled>REMOVE IMPORT</button>
-                        <button class="btn-mini" id="resetView" title="Fit map to data">RESET VIEW</button>
-                        <div class="slider-wrap"><label for="colorSlider">POLYGON HUE</label><input type="range"
-                                id="colorSlider" min="0" max="360" step="1" value="168"></div>
+
+                    <div class="lab-body" id="labBody" aria-busy="true">
+                        <div class="lab-stage" id="labStage" data-scene="city">
+                            <div id="geoMap" role="region" aria-label="Interactive 3D map of Mannheim"></div>
+                            <div class="lab-atmos" aria-hidden="true"></div>
+                            <div class="lab-frame" aria-hidden="true"></div>
+
+                            <div class="lab-tools" role="group" aria-label="Map view controls">
+                                <button class="lab-tool" id="labOrbit" type="button" aria-pressed="false"
+                                    aria-label="Toggle auto orbit" data-tip="AUTO ORBIT">
+                                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25"
+                                        stroke-linecap="round" aria-hidden="true">
+                                        <path d="M13.2 8.8A5.4 5.4 0 1 1 11.9 4" />
+                                        <path d="M13.2 2.4v3.1h-3.1" />
+                                    </svg>
+                                </button>
+                                <button class="lab-tool" id="labReset" type="button" aria-label="Reset map view"
+                                    data-tip="RESET VIEW">
+                                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25"
+                                        stroke-linecap="round" aria-hidden="true">
+                                        <circle cx="8" cy="8" r="5.2" />
+                                        <path d="M8 1.4v2.4M8 12.2v2.4M1.4 8h2.4M12.2 8h2.4" />
+                                    </svg>
+                                </button>
+                                <button class="lab-tool" id="labFull" type="button" aria-pressed="false"
+                                    aria-label="Enter fullscreen" data-tip="FULLSCREEN">
+                                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25"
+                                        stroke-linecap="round" aria-hidden="true">
+                                        <path d="M2.2 6V2.2H6M10 2.2h3.8V6M13.8 10v3.8H10M6 13.8H2.2V10" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div class="lab-hud" aria-hidden="true">
+                                <span id="labHudCoord">E 8.47350 · N 49.48490</span><i></i>
+                                <span id="labHudView">Z 14.8 · P 58° · B 337°</span>
+                            </div>
+
+                            <div class="lab-map-credit" id="labMapCredit">
+                                <a href="https://www.openstreetmap.org/copyright" target="_blank"
+                                    rel="noopener">© OpenStreetMap</a><span>·</span><a href="https://openfreemap.org"
+                                    target="_blank" rel="noopener">OpenFreeMap</a><span>·</span><span>ODbL data</span>
+                            </div>
+
+                            <div class="lab-legend" aria-hidden="true">
+                                <div class="lab-legend-head"><span id="labLegendTitle">ELEVATION</span><b
+                                        id="labLegendCount">2,503</b></div>
+                                <div class="lab-legend-bar" id="labLegendBar"></div>
+                                <div class="lab-legend-foot"><span id="labLegendMin">0 M</span><span
+                                        id="labLegendMax">95 M</span></div>
+                            </div>
+                        </div>
+
+                        <aside class="lab-deck" id="labDeck" aria-label="Playground controls">
+                            <div class="deck-top">
+                                <span class="deck-brand"><i aria-hidden="true"></i>GEO/LAB</span>
+                                <span class="deck-tag">MANNHEIM · 49.48°N</span>
+                            </div>
+
+                            <p class="deck-label">SCENE</p>
+                            <div class="deck-scenes" role="group" aria-label="Scene">
+                                <button class="deck-scene is-active" type="button" data-scene="city"
+                                    aria-pressed="true">
+                                    <span class="deck-num">01</span>
+                                    <span class="deck-scene-copy"><b>Skyline</b><em>Extruded footprints</em></span>
+                                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.1"
+                                        stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M2 13.5V6.2l3-2 3 2v7.3M8 13.5V3.2l3-1.5 3 1.5v10.3M1 13.5h14" />
+                                    </svg>
+                                </button>
+                                <button class="deck-scene" type="button" data-scene="flow"
+                                    aria-pressed="false">
+                                    <span class="deck-num">02</span>
+                                    <span class="deck-scene-copy"><b>Flow</b><em>Animated corridors</em></span>
+                                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.1"
+                                        stroke-linecap="round" aria-hidden="true">
+                                        <path d="M1.5 11.2c3.1 0 3.1-6.4 6.5-6.4s3.4 6.4 6.5 6.4" />
+                                        <circle cx="1.6" cy="11.2" r="1" />
+                                        <circle cx="14.4" cy="11.2" r="1" />
+                                    </svg>
+                                </button>
+                                <button class="deck-scene" type="button" data-scene="heat"
+                                    aria-pressed="false">
+                                    <span class="deck-num">03</span>
+                                    <span class="deck-scene-copy"><b>Heat</b><em>Synthetic sensor field</em></span>
+                                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.1"
+                                        aria-hidden="true">
+                                        <circle cx="8" cy="8" r="1.6" />
+                                        <circle cx="8" cy="8" r="4.2" opacity=".7" />
+                                        <circle cx="8" cy="8" r="7" opacity=".4" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div class="deck-field">
+                                <div class="deck-field-head">
+                                    <label for="labParam" id="labParamLabel">ELEVATION SCALE</label>
+                                    <output id="labParamValue" for="labParam">1.00×</output>
+                                </div>
+                                <input id="labParam" type="range" min="0.4" max="2.2" step="0.05" value="1">
+                            </div>
+
+                            <div class="deck-field">
+                                <div class="deck-field-head"><span>PALETTE</span><output
+                                        id="labPaletteName">MINT</output></div>
+                                <div class="deck-palettes" role="group" aria-label="Color palette">
+                                    <button class="palette is-active" type="button" data-palette="mint"
+                                        style="--sw1:#083A2E;--sw2:#1FB48E;--sw3:#8AFFDA" aria-label="Mint palette"
+                                        aria-pressed="true"></button>
+                                    <button class="palette" type="button" data-palette="magma"
+                                        style="--sw1:#2A0838;--sw2:#B31A5C;--sw3:#FFCB72" aria-label="Magma palette"
+                                        aria-pressed="false"></button>
+                                    <button class="palette" type="button" data-palette="ice"
+                                        style="--sw1:#071C46;--sw2:#2A78E8;--sw3:#B8F4FF" aria-label="Ice palette"
+                                        aria-pressed="false"></button>
+                                    <button class="palette" type="button" data-palette="solar"
+                                        style="--sw1:#3A2104;--sw2:#D77712;--sw3:#FFE79A" aria-label="Solar palette"
+                                        aria-pressed="false"></button>
+                                </div>
+                            </div>
+
+                            <p class="deck-note" id="labSceneNote" aria-live="polite">Real Mannheim footprints, extruded by estimated
+                                height. Hover a block to inspect it.</p>
+
+                            <button class="deck-shuffle" id="labShuffle" type="button">
+                                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"
+                                    stroke-linecap="round" aria-hidden="true">
+                                    <rect x="2" y="2" width="12" height="12" rx="2.6" />
+                                    <circle cx="5.6" cy="5.7" r=".9" fill="currentColor" stroke="none" />
+                                    <circle cx="10.4" cy="5.7" r=".9" fill="currentColor" stroke="none" />
+                                    <circle cx="8" cy="8" r=".9" fill="currentColor" stroke="none" />
+                                    <circle cx="5.6" cy="10.3" r=".9" fill="currentColor" stroke="none" />
+                                    <circle cx="10.4" cy="10.3" r=".9" fill="currentColor" stroke="none" />
+                                </svg>
+                                <span>SHUFFLE THE DATA</span>
+                                <kbd>R</kbd>
+                            </button>
+
+                            <div class="deck-foot">
+                                <span><i class="deck-live" aria-hidden="true"></i><span id="labStatus">WEBGL ·
+                                        LIVE</span></span>
+                                <button id="labExport" type="button"
+                                    aria-label="Export the visible data as GeoJSON">EXPORT .GEOJSON ↓</button>
+                            </div>
+                        </aside>
+
+                        <div class="lab-boot" id="labBoot" role="status" aria-live="polite">
+                            <div class="boot-radar" aria-hidden="true"><i></i><i></i><i></i></div>
+                            <b>BOOTING GEO ENGINE</b>
+                            <span>MapLibre + deck.gl · local dataset · WebGL2</span>
+                        </div>
+
+                        <div class="lab-fallback" id="labFallback" role="alert" hidden>
+                            <div class="lab-fb-inner">
+                                <span class="lab-fb-kicker">SIGNAL LOST</span>
+                                <b>3D engine could not start.</b>
+                                <p id="labFallbackMsg">MapLibre needs WebGL2 and a network connection for the basemap.
+                                    The rest of the site works fine.</p>
+                            </div>
+                        </div>
                     </div>
-                    <div id="labMap">
-                        <div class="map-readout" id="labReadout" aria-live="polite">E — · N —</div>
+
+                    <div class="lab-pro-foot">
+                        <span>DATA — MANNHEIM BUILDING FOOTPRINTS © <a
+                                href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OPENSTREETMAP
+                                CONTRIBUTORS</a> (ODbL) · FLOWS &amp; SENSORS SYNTHETIC</span>
+                        <span id="labBasemapCredit">BASEMAP © <a href="https://openfreemap.org" target="_blank"
+                            rel="noopener">OPENFREEMAP</a> · © OPENMAPTILES · MAPLIBRE GL JS + DECK.GL</span>
                     </div>
                 </article>
 
@@ -469,6 +636,7 @@
         </button>
 
         <script src="script.js"></script>
+        <script defer src="playground.js"></script>
 </body>
 
 </html>
